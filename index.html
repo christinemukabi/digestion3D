@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 3D Digestive System Explorer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: #e0e0e0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .visualization {
+            flex: 1;
+            min-width: 500px;
+            height: 500px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #digestive-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .info-panel {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .info-panel h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #ff9a8b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-panel h2 i {
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .organ-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.3s, background 0.3s;
+            border-left: 4px solid #ff7e5f;
+        }
+
+        .organ-info:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .organ-info h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: #ffcc70;
+        }
+
+        .organ-info p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #e0e0e0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 126, 95, 0.4);
+        }
+
+        .control-btn:active {
+            transform: translateY(1px);
+        }
+
+        .digestive-process {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .digestive-process h2 {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            color: #ff9a8b;
+            text-align: center;
+        }
+
+        .process-steps {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .step {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            width: 220px;
+            text-align: center;
+            transition: all 0.3s;
+            border-top: 3px solid #ff7e5f;
+        }
+
+        .step:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .step-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .step h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #ffcc70;
+        }
+
+        .step p {
+            font-size: 0.95rem;
+            color: #e0e0e0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0 20px;
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 900px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .visualization {
+                min-width: 100%;
+                height: 400px;
+            }
+            
+            .control-btn {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-stomach"></i> Digestive System Explorer</h1>
+            <p>Interact with our 3D model to explore the human digestive system and understand how your body processes food</p>
+        </header>
+
+        <div class="content">
+            <div class="visualization">
+                <canvas id="digestive-canvas"></canvas>
+            </div>
+
+            <div class="info-panel">
+                <h2><i class="fas fa-info-circle"></i> Digestive System Information</h2>
+                
+                <div class="organ-info">
+                    <h3>Mouth & Salivary Glands</h3>
+                    <p>Digestion begins in the mouth where teeth break down food and saliva starts breaking down carbohydrates. Saliva contains enzymes that begin the chemical digestion process.</p>
+                </div>
+                
+                <div class="organ-info">
+                    <h3>Esophagus</h3>
+                    <p>A muscular tube that connects the mouth to the stomach. Food moves through via peristalsis - rhythmic muscle contractions that push food downward.</p>
+                </div>
+                
+                <div class="organ-info">
+                    <h3>Stomach</h3>
+                    <p>Acts as a storage tank where food is mixed with gastric juices. Powerful muscles churn food into a thick liquid called chyme. Acid and enzymes break down proteins.</p>
+                </div>
+                
+                <div class="organ-info">
+                    <h3>Small Intestine</h3>
+                    <p>Where most digestion and nutrient absorption occurs. Divided into duodenum, jejunum, and ileum. Nutrients pass through the intestinal walls into the bloodstream.</p>
+                </div>
+                
+                <div class="organ-info">
+                    <h3>Large Intestine</h3>
+                    <p>Absorbs water and electrolytes from remaining indigestible food matter. Houses beneficial bacteria that produce vitamins. Compacts waste into feces for elimination.</p>
+                </div>
+                
+                <div class="controls">
+                    <button class="control-btn"><i class="fas fa-play"></i> Start Journey</button>
+                    <button class="control-btn"><i class="fas fa-sync-alt"></i> Reset View</button>
+                    <button class="control-btn"><i class="fas fa-layer-group"></i> Show Layers</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="digestive-process">
+            <h2><i class="fas fa-route"></i> The Digestive Process</h2>
+            <div class="process-steps">
+                <div class="step">
+                    <div class="step-icon"><i class="fas fa-utensils"></i></div>
+                    <h3>Ingestion</h3>
+                    <p>Taking food and liquids into the mouth</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-icon"><i class="fas fa-mortar-pestle"></i></div>
+                    <h3>Digestion</h3>
+                    <p>Mechanical and chemical breakdown of food</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-icon"><i class="fas fa-tint"></i></div>
+                    <h3>Absorption</h3>
+                    <p>Passage of nutrients into the bloodstream</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-icon"><i class="fas fa-recycle"></i></div>
+                    <h3>Assimilation</h3>
+                    <p>Use of nutrients by body cells</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-icon"><i class="fas fa-toilet"></i></div>
+                    <h3>Elimination</h3>
+                    <p>Removal of undigested waste materials</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Interactive 3D Digestive System Explorer | Created for Educational Purposes | © 2023 Biology Education</p>
+    </footer>
+
+    <script>
+        // Initialize Three.js scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a192f);
+        scene.fog = new THREE.Fog(0x0a192f, 10, 25);
+
+        // Create camera
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 15;
+        camera.position.y = 2;
+
+        // Create renderer
+        const renderer = new THREE.WebGLRenderer({ 
+            canvas: document.getElementById('digestive-canvas'),
+            antialias: true,
+            alpha: true
+        });
+        renderer.setSize(document.querySelector('.visualization').clientWidth, 
+                         document.querySelector('.visualization').clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 7);
+        scene.add(directionalLight);
+
+        // Create simplified digestive system organs
+        const organs = [];
+
+        // Function to create an organ
+        function createOrgan(name, color, position, size) {
+            const geometry = new THREE.SphereGeometry(size[0], size[1], size[2]);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: color,
+                transparent: true,
+                opacity: 0.85,
+                shininess: 100,
+                emissive: new THREE.Color(color).multiplyScalar(0.1)
+            });
+            
+            const organ = new THREE.Mesh(geometry, material);
+            organ.position.set(position[0], position[1], position[2]);
+            organ.name = name;
+            
+            scene.add(organ);
+            organs.push(organ);
+            return organ;
+        }
+
+        // Create organs
+        const mouth = createOrgan('Mouth', 0xff6b6b, [-8, 1, 0], [1, 16, 16]);
+        const esophagus = createOrgan('Esophagus', 0xff9a76, [-5, 0, 0], [0.5, 16, 16]);
+        const stomach = createOrgan('Stomach', 0xff8066, [-1, -1, 0], [1.5, 1.5, 2.5]);
+        const smallIntestine = createOrgan('Small Intestine', 0xffcc70, [3, 0, 0], [0.6, 0.6, 6]);
+        const largeIntestine = createOrgan('Large Intestine', 0x7ec0f0, [6, 0, 0], [1, 1, 4]);
+
+        // Create food particle
+        const foodGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+        const foodMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x66ff66,
+            emissive: 0x224422
+        });
+        const foodParticle = new THREE.Mesh(foodGeometry, foodMaterial);
+        scene.add(foodParticle);
+
+        // Add animation path
+        const pathPoints = [
+            new THREE.Vector3(-8, 1, 0),  // Mouth
+            new THREE.Vector3(-5, 0, 0),   // Esophagus
+            new THREE.Vector3(-1, -1, 0),  // Stomach
+            new THREE.Vector3(1, 0, 0),    // Stomach exit
+            new THREE.Vector3(3, 0, 0),    // Small intestine start
+            new THREE.Vector3(4, -1, 0),   // Small intestine curve
+            new THREE.Vector3(5, 0, 0),    // Small intestine curve
+            new THREE.Vector3(6, 1, 0),    // Small intestine to large intestine
+            new THREE.Vector3(7, 0, 0),    // Large intestine
+            new THREE.Vector3(8, -1, 0)    // Exit
+        ];
+
+        const pathGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
+        const pathMaterial = new THREE.LineBasicMaterial({ color: 0x44ff44, transparent: true, opacity: 0.3 });
+        const pathLine = new THREE.Line(pathGeometry, pathMaterial);
+        scene.add(pathLine);
+
+        // Animation variables
+        let animationProgress = 0;
+        let isAnimating = false;
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = document.querySelector('.visualization').clientWidth / 
+                            document.querySelector('.visualization').clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(document.querySelector('.visualization').clientWidth, 
+                            document.querySelector('.visualization').clientHeight);
+        });
+
+        // Animation function
+        function animateFood() {
+            if (!isAnimating) return;
+            
+            animationProgress += 0.002;
+            if (animationProgress > 1) {
+                animationProgress = 0;
+            }
+            
+            const pointIndex = Math.floor(animationProgress * (pathPoints.length - 1));
+            const nextPointIndex = Math.min(pointIndex + 1, pathPoints.length - 1);
+            const segmentProgress = (animationProgress * (pathPoints.length - 1)) - pointIndex;
+            
+            const currentPoint = pathPoints[pointIndex];
+            const nextPoint = pathPoints[nextPointIndex];
+            
+            foodParticle.position.lerpVectors(currentPoint, nextPoint, segmentProgress);
+        }
+
+        // Start animation when button is clicked
+        document.querySelector('.control-btn:nth-child(1)').addEventListener('click', () => {
+            isAnimating = !isAnimating;
+            const icon = document.querySelector('.control-btn:nth-child(1) i');
+            if (isAnimating) {
+                icon.className = 'fas fa-pause';
+                document.querySelector('.control-btn:nth-child(1)').innerHTML = '<i class="fas fa-pause"></i> Pause Journey';
+            } else {
+                icon.className = 'fas fa-play';
+                document.querySelector('.control-btn:nth-child(1)').innerHTML = '<i class="fas fa-play"></i> Start Journey';
+            }
+        });
+
+        // Reset view button
+        document.querySelector('.control-btn:nth-child(2)').addEventListener('click', () => {
+            camera.position.set(0, 2, 15);
+            camera.lookAt(0, 0, 0);
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotate organs slowly
+            organs.forEach(organ => {
+                organ.rotation.y += 0.002;
+            });
+            
+            // Animate food particle
+            animateFood();
+            
+            // Rotate camera slowly
+            camera.position.x = Math.sin(Date.now() * 0.0002) * 10;
+            camera.position.z = Math.cos(Date.now() * 0.0002) * 10;
+            camera.lookAt(0, 0, 0);
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>
